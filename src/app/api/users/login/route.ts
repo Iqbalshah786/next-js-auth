@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
     const { email, password } = reqBody;
-    console.log("Login request body:", reqBody);
 
     // Check if user exists
     // include password field for verification

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function LoginPage() {
     password: "",
   });
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Ensure button is enabled only when all fields have content
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setButtonDisabled(true);
+    setLoading(true);
     try {
       // if no internet conncection set toast message accordingly
       if (!navigator.onLine) {
@@ -47,14 +49,15 @@ export default function LoginPage() {
       });
     } finally {
       setButtonDisabled(false);
+      setLoading(false);
     }
   };
 
   return (
     <>
       <div className="flex flex-col items-center justify-center min-h-screen py-2 text-center">
-        <h1>Login</h1>
-        {/* <hr /> */}
+        {loading ? <h1>Processing</h1> : <h1>Login</h1>}
+        <hr />
         <form
           onSubmit={onLogin}
           className="flex flex-col items-center justify-center w-max-w-md mx-auto"
