@@ -16,6 +16,7 @@ export async function GET() {
     });
     return response;
   } catch (error:any) {
+    console.error("Logout error:", error);
     return NextResponse.json(
       { success: false, error: "Something went wrong" },
       { status: 500 }
