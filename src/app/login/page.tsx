@@ -4,6 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+import { z } from "zod";
+
+// Validation schema
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,13 +21,24 @@ export default function LoginPage() {
   });
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Ensure button is enabled only when all fields have content
+  // Validate form and enable/disable button
   useEffect(() => {
-    if (user.email.length > 0 && user.password.length > 0) {
+    const result = loginSchema.safeParse(user);
+    if (result.success) {
       setButtonDisabled(false);
+      setErrors({});
     } else {
       setButtonDisabled(true);
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        if (error.path[0]) {
+          fieldErrors[error.path[0] as string] = error.message;
+        }
+      });
+      setErrors(fieldErrors);
     }
   }, [user]);
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -54,59 +73,134 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <div className="flex flex-col items-center justify-center min-h-screen py-2 text-center">
-        {loading ? <h1>Processing</h1> : <h1>Login</h1>}
-        <hr />
-        <form
-          onSubmit={onLogin}
-          className="flex flex-col items-center justify-center w-max-w-md mx-auto"
-        >
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="border border-gray-300 rounded-md p-2 mb-4 w-full"
-            value={user.email}
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-          />
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Enter your password"
-            className="border border-gray-300 rounded-md p-2 mb-4 w-full"
-            value={user.password}
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-          />
-          {/* forgot password link */}
-          <div className="w-full mb-4 text-right">
-            <Link
-              href="/forgotpassword"
-              className="text-gray-500 hover:underline"
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+            <LogIn className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {loading ? "Processing..." : "Welcome Back"}
+          </h1>
+          <p className="text-gray-600">Sign in to your account</p>
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <form onSubmit={onLogin} className="space-y-6">
+            {/* Email Field */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                    errors.email
+                      ? "border-red-300 focus:border-red-500"
+                      : "border-gray-200 focus:border-indigo-500"
+                  }`}
+                  value={user.email}
+                  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
+                    errors.password
+                      ? "border-red-300 focus:border-red-500"
+                      : "border-gray-200 focus:border-indigo-500"
+                  }`}
+                  value={user.password}
+                  onChange={(e) =>
+                    setUser({ ...user, password: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="flex justify-end">
+              <Link
+                href="/forgotpassword"
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={buttonDisabled || loading}
+              className={`w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg text-white font-medium transition-all duration-200 ${
+                buttonDisabled || loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105"
+              }`}
             >
-              Forgot password?
-            </Link>
+              {loading ? "Signing in..." : "Sign In"}
+              {!loading && <LogIn className="ml-2 h-5 w-5" />}
+            </button>
+          </form>
+
+          {/* Sign Up Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors"
+              >
+                Sign up here
+              </Link>
+            </p>
           </div>
-          <button
-            type="submit"
-            className={`${
-              buttonDisabled
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
-            } bg-blue-500 hover:bg-blue-600  text-white rounded-md p-2 mb-4 w-full `}
-            disabled={buttonDisabled}
-          >
-            Login
-          </button>
-          <div>
-            Create account{" "}
-            <Link href="/signup" className="text-gray-500 hover:underline">
-              Signup here
-            </Link>
-          </div>
-        </form>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

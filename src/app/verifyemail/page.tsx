@@ -1,22 +1,26 @@
 "use client";
-
 import axios from "axios";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CheckCircle, XCircle, Mail, Loader2 } from "lucide-react";
 
 export default function VerifyEmail() {
   const [token, setToken] = useState<string>("");
   const [verified, setVerified] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const verifyEmail = async () => {
+    setLoading(true);
     try {
       const res = await axios.post("/api/users/verifyemail", { token });
       console.log("Response from verify email:", res);
       setVerified(true);
     } catch (error: any) {
       setError(true);
-      console.log(error.response.data);
+      console.log(error.response?.data || error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,23 +37,112 @@ export default function VerifyEmail() {
     }
   }, [token]);
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <p className="text-4xl">Verify Email</p>
-      <h2 className="bg-orange-500 p-2 text-black">
-        {token ? `${token}` : "no token"}
-      </h2>
-      {verified && (
-        <div>
-          <h2 className="text-2xl">Email Verified</h2>
-          <Link href={"/login"}>Login</Link>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Verifying Your Email
+            </h1>
+            <p className="text-gray-600">
+              Please wait while we verify your email address...
+            </p>
+          </div>
         </div>
-      )}
-      {error && (
-        <div>
-          <h2 className="text-2xl bg-red-500 text-black">Error</h2>
+      </div>
+    );
+  }
+
+  if (verified) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Email Verified Successfully!
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Your email has been verified. You can now login to your account.
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
+            >
+              Continue to Login
+            </Link>
+          </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              Verification Failed
+            </h1>
+            <p className="text-gray-600 mb-8">
+              We couldn't verify your email. The link may be invalid or expired.
+            </p>
+            <div className="space-y-4">
+              <Link
+                href="/signup"
+                className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
+              >
+                Sign Up Again
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:bg-gray-50"
+              >
+                Back to Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Mail className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+              No Verification Token
+            </h1>
+            <p className="text-gray-600 mb-8">
+              No verification token was found. Please check your email for the
+              verification link.
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
+            >
+              Back to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
