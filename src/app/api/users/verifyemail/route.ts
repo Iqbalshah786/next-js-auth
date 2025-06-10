@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     console.log("Received token:", token);
     
     const user = await User.findOne({ verifyToken: token, verifyTokenExpiry: { $gt: Date.now() } });
-    console.log("User found:", user);
+    
     if(!user) {
       return NextResponse.json(
         { success: false, error: "Invalid or expired token" },
