@@ -32,7 +32,7 @@ A comprehensive authentication system built with **Next.js 15** featuring secure
 First, clone the repository and install dependencies:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Iqbalshah786/next-js-auth
 cd auth_nextjs
 npm install
 # or
