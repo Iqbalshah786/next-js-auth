@@ -79,6 +79,15 @@ export default function LoginPage() {
             value={user.password}
             onChange={(e) => setUser({ ...user, password: e.target.value })}
           />
+          {/* forgot password link */}
+          <div className="w-full mb-4 text-right">
+            <Link
+              href="/forgotpassword"
+              className="text-gray-500 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <button
             type="submit"
             className={`${
