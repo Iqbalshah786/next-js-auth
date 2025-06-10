@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 import toast from "react-hot-toast";
-import { User, LogOut, UserCheck, ArrowRight, Loader2 } from "lucide-react";
+import {
+  User,
+  LogOut,
+  UserCheck,
+  ArrowRight,
+  Loader2,
+  Home,
+} from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,7 +24,7 @@ export default function ProfilePage() {
     try {
       await axios.get("/api/users/logout");
       toast.success("Logout successful!");
-      router.push("/login");
+      router.push("/");
     } catch (error: any) {
       console.log("Error logging out:", error);
       toast.error(
@@ -51,9 +58,11 @@ export default function ProfilePage() {
             <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-black mb-2">
-              Profile Dashboard
-            </h1>
+            <div className="flex items-center justify-center gap-4 mb-2">
+              <h1 className="text-3xl font-bold text-black">
+                Profile Dashboard
+              </h1>
+            </div>
             <p className="text-gray-700">
               Manage your account and view your details
             </p>
@@ -122,6 +131,15 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+        </div>
+        <div className="mt-6 text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
+          >
+            <Home className="w-4 h-4 mr-1" />
+            Home
+          </Link>
         </div>
       </div>
     </div>
