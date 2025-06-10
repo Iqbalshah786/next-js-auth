@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbConfig";
 import User from "@/models/userModal";
 import bcrypt from "bcryptjs";
+import { sendEmail } from "@/helpers/mailer";
 
 
 
@@ -42,6 +43,12 @@ export async function POST(request: NextRequest) {
     // hash and create
     const hashed = await bcrypt.hash(password, 10);
     const created = await User.create({ username, email, password: hashed });
+    // send verification email
+    try {
+      await sendEmail({ email: created.email, emailType: "VERIFY", userId: created._id });
+    } catch (emailError) {
+      console.error("Error sending verification email:", emailError);
+    }
 
     // prepare response payload
     const userPayload = {
@@ -52,7 +59,6 @@ export async function POST(request: NextRequest) {
       isVarified: created.isVarified,
       createdAt: created.createdAt,
     };
-
     return NextResponse.json(
       { success: true, message: "Signup successfully", user: userPayload },
       { status: 201 }

@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     minlength: 6,
     select: false, // Exclude password from queries by default
   },
-  isVarified: {
+  isVerified: {
     type: Boolean,
     default: false,
   },
@@ -30,8 +30,8 @@ const userSchema = new mongoose.Schema({
   },
   forgotPasswordToken: String,
   forgotPasswordExpiry: Date,
-  verfiyToken: String,
-  verfiyTokenExpiry: Date,
+  verifyToken: String,
+  verifyTokenExpiry: Date,
   createdAt: {
     type: Date,
     default: Date.now,
