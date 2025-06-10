@@ -49,8 +49,12 @@ DOMAIN=http://localhost:3000
 # Email configuration
 SMTP_HOST=your_smtp_host
 SMTP_PORT=587
-SMTP_USER=your_email@example.com
-SMTP_PASS=your_email_password
+SMTP_USER=abc123
+SMTP_PASS=abc123
+SMTP_FROM=your_email_password
+EMAIL=your_email
+PASSWORD=abc123
+EMAIL_SERVICE=gmail
 ```
 
 Run the development server:
