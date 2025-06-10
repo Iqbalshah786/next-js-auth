@@ -8,12 +8,20 @@ export default function VerifyEmail() {
   const [token, setToken] = useState<string>("");
   const [verified, setVerified] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true); // Start with loading true
+  const [initialized, setInitialized] = useState<boolean>(false);
 
-  const verifyEmail = async () => {
-    setLoading(true);
+  const verifyEmail = async (tokenToVerify: string) => {
+    if (!tokenToVerify) {
+      setError(true);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await axios.post("/api/users/verifyemail", { token });
+      const res = await axios.post("/api/users/verifyemail", {
+        token: tokenToVerify,
+      });
       console.log("Response from verify email:", res);
       setVerified(true);
     } catch (error: any) {
@@ -25,17 +33,24 @@ export default function VerifyEmail() {
   };
 
   useEffect(() => {
-    const urlToken = window.location.search.split("=")[1];
-    if (urlToken) {
-      setToken(urlToken);
-    }
-  }, []);
+    // Add a small delay to ensure URL is fully loaded
+    const initializeVerification = async () => {
+      // Wait a brief moment to ensure URL parameters are available
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-  useEffect(() => {
-    if (token.length > 0) {
-      verifyEmail();
-    }
-  }, [token]);
+      const urlToken = window.location.search.split("=")[1];
+      if (urlToken) {
+        setToken(urlToken);
+        await verifyEmail(urlToken);
+      } else {
+        setError(true);
+        setLoading(false);
+      }
+      setInitialized(true);
+    };
+
+    initializeVerification();
+  }, []);
 
   if (loading) {
     return (

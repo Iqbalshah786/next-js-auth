@@ -46,12 +46,25 @@ export default function ResetPasswordPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [resetSuccess, setResetSuccess] = useState<boolean>(false);
+  const [tokenLoading, setTokenLoading] = useState<boolean>(true);
 
-  // Extract token from URL
+  // Extract token from URL with better error handling
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const t = urlParams.get("token");
-    if (t) setToken(t);
+    const initializeToken = async () => {
+      // Add a small delay to ensure URL is fully loaded
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const t = urlParams.get("token");
+      if (t) {
+        setToken(t);
+      } else {
+        toast.error("Invalid reset link. Please request a new password reset.");
+      }
+      setTokenLoading(false);
+    };
+
+    initializeToken();
   }, []);
 
   // Validate individual fields when touched
@@ -117,6 +130,11 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!token) {
+      toast.error("Invalid reset token. Please request a new password reset.");
+      return;
+    }
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -137,6 +155,27 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  // Show loading state while token is being initialized
+  if (tokenLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-8 h-8 text-purple-600 animate-pulse" />
+            </div>
+            <h1 className="text-2xl font-bold text-black mb-4">
+              Initializing Reset
+            </h1>
+            <p className="text-gray-700">
+              Please wait while we verify your reset link...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (resetSuccess) {
     return (
