@@ -44,6 +44,7 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [resetSuccess, setResetSuccess] = useState<boolean>(false);
 
   // Extract token from URL
@@ -52,6 +53,48 @@ export default function ResetPasswordPage() {
     const t = urlParams.get("token");
     if (t) setToken(t);
   }, []);
+
+  // Validate individual fields when touched
+  const validateField = (field: string, value: string) => {
+    let fieldSchema;
+    if (field === "password") {
+      fieldSchema = z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/\d/, "Password must contain at least one number")
+        .regex(
+          /[@$!%*?&]/,
+          "Password must contain at least one special character"
+        );
+    } else if (field === "confirmPassword") {
+      if (value !== password) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords don't match",
+        }));
+        return;
+      }
+      fieldSchema = z.string().min(1, "Please confirm your password");
+    } else {
+      return;
+    }
+
+    const result = fieldSchema.safeParse(value);
+    if (result.success) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+      // Also check if passwords match when validating confirm password
+      if (field === "confirmPassword" && value === password) {
+        setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+      }
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: result.error.errors[0].message,
+      }));
+    }
+  };
 
   // Validate form
   const validateForm = () => {
@@ -103,10 +146,10 @@ export default function ResetPasswordPage() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-black mb-4">
               Password Reset Successfully!
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-700 mb-8">
               Your password has been updated. You'll be redirected to login
               shortly.
             </p>
@@ -131,10 +174,10 @@ export default function ResetPasswordPage() {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-black mb-4">
               Invalid Reset Link
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-700 mb-8">
               This password reset link is invalid or has expired. Please request
               a new one.
             </p>
@@ -154,10 +197,10 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-black mb-2">
             Reset Your Password
           </h1>
-          <p className="text-gray-600">Enter your new password below</p>
+          <p className="text-gray-700">Enter your new password below</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -165,7 +208,7 @@ export default function ResetPasswordPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 New Password
               </label>
@@ -178,16 +221,20 @@ export default function ResetPasswordPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter new password"
                   className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password
+                    touched.password && errors.password
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if (errors.password) {
-                      setErrors({ ...errors, password: "" });
+                    if (touched.password) {
+                      validateField("password", e.target.value);
                     }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, password: true }));
+                    validateField("password", password);
                   }}
                 />
                 <button
@@ -202,7 +249,7 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              {errors.password && (
+              {touched.password && errors.password && (
                 <p className="mt-2 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
@@ -210,7 +257,7 @@ export default function ResetPasswordPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Confirm New Password
               </label>
@@ -223,16 +270,20 @@ export default function ResetPasswordPage() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm new password"
                   className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmPassword
+                    touched.confirmPassword && errors.confirmPassword
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
-                    if (errors.confirmPassword) {
-                      setErrors({ ...errors, confirmPassword: "" });
+                    if (touched.confirmPassword) {
+                      validateField("confirmPassword", e.target.value);
                     }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, confirmPassword: true }));
+                    validateField("confirmPassword", confirmPassword);
                   }}
                 />
                 <button
@@ -247,7 +298,7 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              {errors.confirmPassword && (
+              {touched.confirmPassword && errors.confirmPassword && (
                 <p className="mt-2 text-sm text-red-600">
                   {errors.confirmPassword}
                 </p>
@@ -257,7 +308,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !password || !confirmPassword}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center hover:cursor-pointer"
             >
               {loading ? (
                 <div className="flex items-center">

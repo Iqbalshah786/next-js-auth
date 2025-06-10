@@ -51,17 +51,17 @@ export default function ProfilePage() {
             <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-black mb-2">
               Profile Dashboard
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               Manage your account and view your details
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
                 <UserCheck className="w-5 h-5 mr-2 text-blue-600" />
                 User Information
               </h2>
@@ -75,7 +75,7 @@ export default function ProfilePage() {
                     href={`/profile/${data}`}
                     className="inline-flex items-center justify-between w-full p-3 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 rounded-lg transition-all duration-200 group"
                   >
-                    <span className="font-mono text-sm text-gray-700 truncate">
+                    <span className="font-mono text-sm text-black truncate">
                       {data}
                     </span>
                     <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
@@ -88,7 +88,7 @@ export default function ProfilePage() {
               <button
                 onClick={getUserDetails}
                 disabled={userLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center hover:cursor-pointer"
               >
                 {userLoading ? (
                   <div className="flex items-center">
@@ -106,7 +106,7 @@ export default function ProfilePage() {
               <button
                 onClick={onLogout}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center hover:cursor-pointer"
               >
                 {loading ? (
                   <div className="flex items-center">

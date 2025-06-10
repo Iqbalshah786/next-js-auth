@@ -23,24 +23,35 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   // Validate form and enable/disable button
   useEffect(() => {
     const result = loginSchema.safeParse(user);
     if (result.success) {
       setButtonDisabled(false);
-      setErrors({});
     } else {
       setButtonDisabled(true);
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((error) => {
-        if (error.path[0]) {
-          fieldErrors[error.path[0] as string] = error.message;
-        }
-      });
-      setErrors(fieldErrors);
     }
   }, [user]);
+
+  // Validate individual fields when touched
+  const validateField = (field: string, value: string) => {
+    const fieldSchema =
+      field === "email"
+        ? z.string().email("Please enter a valid email")
+        : z.string().min(1, "Password is required");
+
+    const result = fieldSchema.safeParse(value);
+    if (result.success) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: result.error.errors[0].message,
+      }));
+    }
+  };
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setButtonDisabled(true);
@@ -80,10 +91,8 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {loading ? "Processing..." : "Welcome Back"}
-          </h1>
-          <p className="text-gray-600">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-black mb-2">Welcome </h1>
+          <p className="text-gray-700">Sign in to your account</p>
         </div>
 
         {/* Form Card */}
@@ -93,7 +102,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Email Address
               </label>
@@ -106,15 +115,24 @@ export default function LoginPage() {
                   type="email"
                   placeholder="Enter your email"
                   className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-                    errors.email
+                    touched.email && errors.email
                       ? "border-red-300 focus:border-red-500"
                       : "border-gray-200 focus:border-indigo-500"
                   }`}
                   value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                  onChange={(e) => {
+                    setUser({ ...user, email: e.target.value });
+                    if (touched.email) {
+                      validateField("email", e.target.value);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, email: true }));
+                    validateField("email", user.email);
+                  }}
                 />
               </div>
-              {errors.email && (
+              {touched.email && errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
@@ -123,7 +141,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Password
               </label>
@@ -136,14 +154,21 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-                    errors.password
+                    touched.password && errors.password
                       ? "border-red-300 focus:border-red-500"
                       : "border-gray-200 focus:border-indigo-500"
                   }`}
                   value={user.password}
-                  onChange={(e) =>
-                    setUser({ ...user, password: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setUser({ ...user, password: e.target.value });
+                    if (touched.password) {
+                      validateField("password", e.target.value);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, password: true }));
+                    validateField("password", user.password);
+                  }}
                 />
                 <button
                   type="button"
@@ -151,13 +176,13 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:cursor-pointer" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 hover:cursor-pointer" />
                   )}
                 </button>
               </div>
-              {errors.password && (
+              {touched.password && errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
@@ -179,7 +204,7 @@ export default function LoginPage() {
               className={`w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg text-white font-medium transition-all duration-200 ${
                 buttonDisabled || loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105"
+                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 hover:cursor-pointer"
               }`}
             >
               {loading ? "Signing in..." : "Sign In"}
@@ -189,7 +214,7 @@ export default function LoginPage() {
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-black">
               Don't have an account?{" "}
               <Link
                 href="/signup"

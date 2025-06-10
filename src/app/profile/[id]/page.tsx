@@ -28,21 +28,19 @@ export default async function UserProfile({
 
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-semibold text-black mb-4 flex items-center">
                 <Hash className="w-5 h-5 mr-2 text-indigo-600" />
                 User ID
               </h2>
               <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <p className="font-mono text-sm text-gray-700 break-all">
-                  {id}
-                </p>
+                <p className="font-mono text-sm text-black break-all">{id}</p>
               </div>
             </div>
 
             <div className="pt-4">
               <Link
                 href="/profile"
-                className="inline-flex items-center justify-center w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
+                className="inline-flex items-center justify-center w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Profile Dashboard

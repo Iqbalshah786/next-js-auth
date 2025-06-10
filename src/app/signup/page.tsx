@@ -4,20 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Eye, EyeOff, User, Mail, Lock, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { z } from "zod";
 
 // Validation schema
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Please enter a valid email"),
+  email: z.string().email("Please enter a valid email address"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      "Password must contain uppercase, lowercase, number and special character"
-    ),
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[@$!%*?&]/, "Password must contain at least one special character"),
 });
 
 export default function SignUpPage() {
@@ -25,6 +25,7 @@ export default function SignUpPage() {
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [user, setUser] = useState({
     username: "",
     email: "",
@@ -36,53 +37,76 @@ export default function SignUpPage() {
     const result = signupSchema.safeParse(user);
     if (result.success) {
       setButtonDisabled(false);
-      setErrors({});
     } else {
       setButtonDisabled(true);
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach((error) => {
-        if (error.path[0]) {
-          fieldErrors[error.path[0] as string] = error.message;
-        }
-      });
-      setErrors(fieldErrors);
     }
   }, [user]);
 
+  // Validate individual fields when touched
+  const validateField = (field: string, value: string) => {
+    let fieldSchema;
+    switch (field) {
+      case "username":
+        fieldSchema = z
+          .string()
+          .min(3, "Username must be at least 3 characters");
+        break;
+      case "email":
+        fieldSchema = z.string().email("Please enter a valid email address");
+        break;
+      case "password":
+        fieldSchema = z
+          .string()
+          .min(8, "Password must be at least 8 characters")
+          .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+          .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+          .regex(/\d/, "Password must contain at least one number")
+          .regex(
+            /[@$!%*?&]/,
+            "Password must contain at least one special character"
+          );
+        break;
+      default:
+        return;
+    }
+
+    const result = fieldSchema.safeParse(value);
+    if (result.success) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    } else {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: result.error.errors[0].message,
+      }));
+    }
+  };
+
   const onSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setButtonDisabled(true);
     try {
       const response = await axios.post("/api/users/signup", user);
-
-      if (response.status === 201) {
-        // User created successfully, redirect to login
-        toast.success("Successfully signed up!");
-
-        router.push("/login");
-      }
+      console.log("Signup successful", response.data);
+      toast.success(
+        "Signup successful! Please check your email to verify your account."
+      );
+      setUser({ username: "", email: "", password: "" });
+      router.push("/login");
     } catch (error: any) {
-      console.error("Error signing up:", error);
-      toast.error(error.response?.data?.error || "Something went wrong!", {
-        duration: 1500,
-      });
-    } finally {
-      setButtonDisabled(false);
+      console.log("Signup failed", error.message);
+      toast.error(error.response?.data?.error || "Something went wrong!");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-full mb-4">
             <User className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create Account
-          </h1>
-          <p className="text-gray-600">Join us today and get started</p>
+          <h1 className="text-3xl font-bold text-black mb-2">Create Account</h1>
+          <p className="text-gray-700">Join us today and get started</p>
         </div>
 
         {/* Form Card */}
@@ -92,7 +116,7 @@ export default function SignUpPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Username
               </label>
@@ -104,19 +128,26 @@ export default function SignUpPage() {
                   id="username"
                   type="text"
                   placeholder="Enter your username"
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-                    errors.username
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-200 focus:border-indigo-500"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                    touched.username && errors.username
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   value={user.username}
-                  onChange={(e) =>
-                    setUser({ ...user, username: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setUser({ ...user, username: e.target.value });
+                    if (touched.username) {
+                      validateField("username", e.target.value);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, username: true }));
+                    validateField("username", user.username);
+                  }}
                 />
               </div>
-              {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+              {touched.username && errors.username && (
+                <p className="mt-2 text-sm text-red-600">{errors.username}</p>
               )}
             </div>
 
@@ -124,7 +155,7 @@ export default function SignUpPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Email Address
               </label>
@@ -136,17 +167,26 @@ export default function SignUpPage() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-                    errors.email
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-200 focus:border-indigo-500"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                    touched.email && errors.email
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
+                  onChange={(e) => {
+                    setUser({ ...user, email: e.target.value });
+                    if (touched.email) {
+                      validateField("email", e.target.value);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, email: true }));
+                    validateField("email", user.email);
+                  }}
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              {touched.email && errors.email && (
+                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
               )}
             </div>
 
@@ -154,7 +194,7 @@ export default function SignUpPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-black mb-2"
               >
                 Password
               </label>
@@ -166,15 +206,22 @@ export default function SignUpPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className={`w-full pl-10 pr-12 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors ${
-                    errors.password
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-200 focus:border-indigo-500"
+                  className={`w-full pl-10 pr-12 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                    touched.password && errors.password
+                      ? "border-red-300 bg-red-50"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   value={user.password}
-                  onChange={(e) =>
-                    setUser({ ...user, password: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setUser({ ...user, password: e.target.value });
+                    if (touched.password) {
+                      validateField("password", e.target.value);
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, password: true }));
+                    validateField("password", user.password);
+                  }}
                 />
                 <button
                   type="button"
@@ -188,8 +235,8 @@ export default function SignUpPage() {
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              {touched.password && errors.password && (
+                <p className="mt-2 text-sm text-red-600">{errors.password}</p>
               )}
             </div>
 
@@ -197,24 +244,24 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={buttonDisabled}
-              className={`w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg text-white font-medium transition-all duration-200 ${
-                buttonDisabled
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105"
+              className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center ${
+                buttonDisabled ? "cursor-not-allowed" : "hover:cursor-pointer"
               }`}
             >
-              Create Account
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <div className="flex items-center">
+                Create Account
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </div>
             </button>
           </form>
 
-          {/* Sign In Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600">
+          {/* Login Link */}
+          <div className="mt-8 text-center">
+            <p className="text-black">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-indigo-600 hover:text-indigo-500 font-medium transition-colors"
+                className="text-purple-600 hover:text-purple-800 font-medium transition-colors duration-200"
               >
                 Sign in here
               </Link>

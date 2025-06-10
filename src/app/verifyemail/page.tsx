@@ -45,10 +45,10 @@ export default function VerifyEmail() {
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-black mb-4">
               Verifying Your Email
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-700">
               Please wait while we verify your email address...
             </p>
           </div>
@@ -65,10 +65,10 @@ export default function VerifyEmail() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-black mb-4">
               Email Verified Successfully!
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-700 mb-8">
               Your email has been verified. You can now login to your account.
             </p>
             <Link
@@ -91,10 +91,10 @@ export default function VerifyEmail() {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <XCircle className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-black mb-4">
               Verification Failed
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-700 mb-8">
               We couldn't verify your email. The link may be invalid or expired.
             </p>
             <div className="space-y-4">
